@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
@@ -8,6 +8,50 @@ const MedChat = () => {
   const [language, setLanguage] = useState('en');
   const [isLoading, setIsLoading] = useState(false);
   const [symptoms, setSymptoms] = useState([]);
+  const [isListening, setIsListening] = useState(false);
+
+  // Initialize Speech Recognition
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+
+  useEffect(() => {
+    if (recognition) {
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = language === 'en' ? 'en-US' : language === 'yo' ? 'yo-NG' : language === 'ha' ? 'ha-NG' : language === 'ig' ? 'ig-NG' : 'en-US';
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setIsListening(false);
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        setMessages([...messages, { text: 'Sorry, I couldn’t understand the voice input. Please try again.', sender: 'bot' }]);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+    }
+  }, [language, recognition]);
+
+  const handleVoiceInput = () => {
+    if (!recognition) {
+      setMessages([...messages, { text: 'Speech recognition is not supported in this browser.', sender: 'bot' }]);
+      return;
+    }
+
+    if (isListening) {
+      recognition.stop();
+      setIsListening(false);
+    } else {
+      setIsListening(true);
+      recognition.start();
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -105,6 +149,15 @@ const MedChat = () => {
             className="flex-1 border rounded p-2 mr-2"
           />
           <button
+            onClick={handleVoiceInput}
+            className={`p-2 rounded mr-2 ${
+              isListening ? 'bg-red-600' : 'bg-purple-600'
+            } text-white`}
+            title={isListening ? 'Stop Listening' : 'Start Voice Input'}
+          >
+            {isListening ? 'Stop' : '🎙️'}
+          </button>
+          <button
             onClick={handleSend}
             className="bg-blue-600 text-white rounded p-2"
             disabled={isLoading}
@@ -174,3 +227,4 @@ const MedChat = () => {
 };
 
 export default MedChat;
+      
