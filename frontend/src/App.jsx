@@ -9,6 +9,8 @@ const MedChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [symptoms, setSymptoms] = useState([]);
   const [isListening, setIsListening] = useState(false);
+  const [city, setCity] = useState('');
+  const [clinics, setClinics] = useState([]);
 
   // Initialize Speech Recognition
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -108,6 +110,23 @@ const MedChat = () => {
     setIsLoading(false);
   };
 
+  const handleClinicFinder = async () => {
+    if (!city.trim()) {
+      setMessages([...messages, { text: 'Please enter a city name.', sender: 'bot' }]);
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await axios.post('http://localhost:5000/api/clinic-finder', { city });
+      setClinics(response.data.clinics);
+      setMessages([...messages, { text: response.data.message || `Clinics in ${city}:`, sender: 'bot' }]);
+    } catch (error) {
+      setMessages([...messages, { text: 'Error finding clinics. Try again.', sender: 'bot' }]);
+    }
+    setIsLoading(false);
+    setCity('');
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
       <h1 className="text-3xl font-bold text-blue-600 mb-4">MedChat</h1>
@@ -137,6 +156,18 @@ const MedChat = () => {
               {msg.text}
             </div>
           ))}
+          {clinics.length > 0 && (
+            <div className="mt-2 p-2 bg-gray-200 rounded">
+              <h3 className="font-bold">Clinic Results:</h3>
+              <ul className="list-disc pl-5">
+                {clinics.map((clinic, idx) => (
+                  <li key={idx}>
+                    {clinic.name} - {clinic.address} (Phone: {clinic.phone})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {isLoading && <div className="text-gray-500">Typing...</div>}
         </div>
         <div className="flex">
@@ -218,6 +249,21 @@ const MedChat = () => {
             Submit Symptoms
           </button>
         </div>
+        <div className="mt-4">
+          <input
+            type="text"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            placeholder="Enter city (e.g., lagos, abuja, kano)"
+            className="w-full border rounded p-2 mb-2"
+          />
+          <button
+            onClick={handleClinicFinder}
+            className="bg-yellow-600 text-white rounded p-2 w-full"
+          >
+            Find Clinics
+          </button>
+        </div>
       </div>
       <p className="text-sm text-gray-600 mt-4">
         Note: MedChat provides general advice. Consult a doctor for medical emergencies.
@@ -227,4 +273,3 @@ const MedChat = () => {
 };
 
 export default MedChat;
-      

@@ -4,7 +4,21 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-
+// Mock clinic data (replace with real API call later)
+const mockClinics = {
+    "lagos": [
+        { name: "Lagos General Hospital", address: "1 Broad Street, Lagos Island", phone: "+234 1 123 4567" },
+        { name: "St. Nicholas Hospital", address: "57 Campbell Street, Lagos Island", phone: "+234 1 266 9999" }
+    ],
+    "abuja": [
+        { name: "National Hospital Abuja", address: "Plot 132 Central District, Garki, Abuja", phone: "+234 9 234 5678" },
+        { name: "Cedarcrest Hospitals", address: "2 Sam Mbakwe Street, Garki, Abuja", phone: "+234 9 345 6789" }
+    ],
+    "kano": [
+        { name: "Aminu Kano Teaching Hospital", address: "No 1 Hospital Road, Kano", phone: "+234 64 123 4567" },
+        { name: "Murtala Muhammad Specialist Hospital", address: "No 2 Murtala Way, Kano", phone: "+234 64 234 5678" }
+    ]
+};
 const knowledgeBase = {
   en: {
     'why do i feel tired': 'Fatigue can be caused by dehydration, poor diet, lack of sleep, or conditions like anemia. Drink water, eat balanced meals, and consult a doctor for tests.',
@@ -61,6 +75,16 @@ app.post('/api/symptom-checker', (req, res) => {
   
   res.json({ answer });
 });
-
+// New clinic finder endpoint
+app.post('/api/clinic-finder', (req, res) => {
+    const { city } = req.body;
+    const cityLower = city.toLowerCase();
+    const clinics = mockClinics[cityLower] || [];
+    if (clinics.length > 0) {
+        res.json({ clinics });
+    } else {
+        res.json({ clinics: [], message: "No clinics found for this city. Try 'lagos', 'abuja', or 'kano'." });
+    }
+});
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
