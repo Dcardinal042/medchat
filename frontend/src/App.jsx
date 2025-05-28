@@ -62,7 +62,7 @@ const MedChat = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/health-query', {
+      const response = await axios.post('https://medchat-bmbr.onrender.com/api/health-query', {
         query: input,
         language,
       });
@@ -101,7 +101,7 @@ const MedChat = () => {
     }
     setIsLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/symptom-checker', { symptoms });
+      const response = await axios.post('https://medchat-bmbr.onrender.com/api/symptom-checker', { symptoms });
       setMessages([...messages, { text: response.data.answer, sender: 'bot' }]);
       setSymptoms([]);
     } catch (error) {
@@ -117,7 +117,7 @@ const MedChat = () => {
     }
     setIsLoading(true);
     try {
-      const response = await axios.post('http://localhost:5000/api/clinic-finder', { city });
+      const response = await axios.post('https://medchat-bmbr.onrender.com/api/clinic-finder', { city });
       setClinics(response.data.clinics);
       setMessages([...messages, { text: response.data.message || `Clinics in ${city}:`, sender: 'bot' }]);
     } catch (error) {
